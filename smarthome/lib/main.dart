@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:smarthome/DesktopScreen.dart';
 import 'package:smarthome/HomeScreen.dart';
+import 'package:smarthome/ResponsiveLayout.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +15,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      home: ResponsiveLayout(
+        homeView: HomeScreen(),
+        desktopView: DesktopView(),
+
+      )
     );
   }
 }

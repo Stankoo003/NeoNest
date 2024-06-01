@@ -17,7 +17,7 @@ _fetchdata() async {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  String dropDownValue = "Room two";
+  int dropDownValue = 1;
   double score=0;
 
   @override
@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    score = 32;
+    score = 100;
     return Scaffold(
       
       body: Container(
@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             color: Colors.white,
                             fontWeight: FontWeight.w800),
                       ),
-                      DropdownButton<String>(
+                      DropdownButton<int>(
                         value: dropDownValue,
                         onChanged: (value) {
                           setState(() {
@@ -66,21 +66,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             color: Colors.black54,
                             fontWeight: FontWeight.w800),
                         icon: const Icon(Icons.menu),
-                        items: const [
-                          DropdownMenuItem<String>(
-                            value: 'One',
+                        items: [
+                          DropdownMenuItem<int>(
+                            value: 1,
                             child: Text("Room one"),
                           ),
-                          DropdownMenuItem<String>(
-                            value: 'Two',
+                          DropdownMenuItem<int>(
+                            value:2,
                             child: Text("Room two"),
                           ),
-                          DropdownMenuItem<String>(
-                            value: 'Tree',
+                          DropdownMenuItem<int>(
+                            value: 3,
                             child: Text("Room tree"),
                           ),
-                          DropdownMenuItem<String>(
-                            value: 'Four',
+                          DropdownMenuItem<int>(
+                            value: 4,
                             child: Text("Room four"),
                           ),
                         ],
