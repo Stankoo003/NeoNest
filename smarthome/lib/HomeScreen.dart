@@ -1,8 +1,12 @@
 import 'dart:async';
-import 'dart:ffi';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:smarthome/models/HomeData.dart';
+import 'package:smarthome/services/HomeService.dart';
+
+HomeService homeService = HomeService();
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,18 +15,19 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-_fetchdata() async {
-  await Future.delayed(Duration(
-      seconds: 1)); // simulira koliko je potrebno da se ceka recimo 1 sekunda
-}
-
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  int dropDownValue = 1;
-  double score=0;
+  int dropDownValue = 0;
+  double score = 0;
+  List<String> roomNames = [];
+  int index = 0;
+  HomeData homeData = HomeData();
 
   @override
   void initState() {
     super.initState();
+    homeService.getHomeData(dropDownValue);
+    score = homeData.score;
+    print(score);
   }
 
   @override
@@ -32,121 +37,139 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    score = 100;
     return Scaffold(
-      
-      body: Container(
-          color: getBackgroundColor(score),
-          child: Column(
-            children: [
-              SafeArea(
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.1,
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Room:",
-                        style: TextStyle(
-                            overflow: TextOverflow.fade,
-                            fontSize: 40.0,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800),
-                      ),
-                      DropdownButton<int>(
-                        value: dropDownValue,
-                        onChanged: (value) {
-                          setState(() {
-                            dropDownValue = value!;
-                          });
-                        },
-                        style: TextStyle(
-                            overflow: TextOverflow.fade,
-                            fontSize: 39.0,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w800),
-                        icon: const Icon(Icons.menu),
-                        items: [
-                          DropdownMenuItem<int>(
-                            value: 1,
-                            child: Text("Room one"),
-                          ),
-                          DropdownMenuItem<int>(
-                            value:2,
-                            child: Text("Room two"),
-                          ),
-                          DropdownMenuItem<int>(
-                            value: 3,
-                            child: Text("Room tree"),
-                          ),
-                          DropdownMenuItem<int>(
-                            value: 4,
-                            child: Text("Room four"),
-                          ),
-                        ],
-                      ),
-                    ],
+      body: FutureBuilder(
+        future: homeService.getHomeData(dropDownValue),
+        builder: (context, snapshot) {
+        if(!snapshot.hasData){
+
+
+          return Container(
+
+          color: getBackgroundColor(0),
+          );
+          
+          
+
+
+        } else{
+          return Container(
+            color: getBackgroundColor(snapshot.data!.score),
+            child: Column(
+              children: [
+                SafeArea(
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.1,
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    child: Row(
+                      children: [
+                        Text(
+                          "Room:",
+                          style: TextStyle(
+                              overflow: TextOverflow.fade,
+                              fontSize: 40.0,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800),
+                        ),
+                        FutureBuilder(
+                          future: homeService.getHomeName(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return CircularProgressIndicator();
+                            } else {
+                              if (roomNames.isEmpty) {
+                                roomNames = snapshot.data!;
+                              }
+                              return DropdownButton<int>(
+                                  value: dropDownValue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      
+                                      dropDownValue = value!;
+                                      homeService.getHomeData(dropDownValue);
+                                      print(homeData.score);
+                                      
+                                      
+                                    });
+                                  },
+                                  style: TextStyle(
+                                      overflow: TextOverflow.fade,
+                                      fontSize: 39.0,
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.w800),
+                                  icon: const Icon(Icons.menu),
+                                  items: generateDropdownItems(roomNames));
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width,
-                child: FutureBuilder<dynamic>(
-                    future: _fetchdata(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Container(
-                          margin: const EdgeInsets.all(100),
-                          decoration: const BoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle),
-                          child: const Center(
-                            child: SizedBox(
-                              height: 50.0,
-                              width: 50.0,
-                              child: CircularProgressIndicator(),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.width,
+                  child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                homeService.getHomeData(dropDownValue);
+                              });
+                            },
+                            child: Container(
+                              margin: EdgeInsets.all(100),
+                              decoration: BoxDecoration(
+                                  color: Colors.white, shape: BoxShape.circle),
+                              child: Column(
+                                children: [
+                                  SizedBox(height: 30),
+                                  Text(
+                                    "Overall score",
+                                    style: TextStyle(
+                                        overflow: TextOverflow.fade,
+                                        fontSize: 19.0,
+                                        color: getBackgroundColor(
+                                           snapshot.data!.score),
+                                        fontWeight: FontWeight.w800),
+                                  ),
+                                  Text(
+                                    snapshot.data!.score.toString(),
+                                    style: TextStyle(
+                                        overflow: TextOverflow.fade,
+                                        fontSize: 70.0,
+                                        color: getBackgroundColor(
+                                            snapshot.data!.score),
+                                        fontWeight: FontWeight.w800),
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      } else {
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _fetchdata();
-                            });
-                          },
-                          child: Container(
-                            margin: EdgeInsets.all(100),
-                            decoration: BoxDecoration(
-                                color: Colors.white, shape: BoxShape.circle),
-                            child: Column(
-                              children: [
-                                SizedBox(height: 30),
-                                Text(
-                                  "Overall score",
-                                  style: TextStyle(
-                                      overflow: TextOverflow.fade,
-                                      fontSize: 19.0,
-                                      color: getBackgroundColor(score),
-                                      fontWeight: FontWeight.w800),
-                                ),
-                                Text(
-                                  score.toString(),
-                                  style: TextStyle(
-                                      overflow: TextOverflow.fade,
-                                      fontSize: 70.0,
-                                      color: getBackgroundColor(score),
-                                      fontWeight: FontWeight.w800),
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-                    }),
-              ),
-            ],
-          )),
+                          )
+                
+
+                ),
+                Text(
+                  snapshot.data!.message[0],
+                  style: TextStyle(
+                                        overflow: TextOverflow.fade,
+                                        fontSize: 35.0,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800),
+                ),
+                
+
+
+
+
+
+              ],
+            ));
+
+
+
+        } 
+        }
+        
+      ),
     );
   }
 
@@ -158,7 +181,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Color(0xffd2ff92), // Less saturated greenish yellow
       Color.fromARGB(121, 0, 255, 34), // Less saturated green
     ];
-
     final ratios = [
       0.0,
       0.25,
@@ -176,8 +198,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         return Color.lerp(colors[i], colors[i + 1], ratioWithinRange)!;
       }
     }
-
-    // Default to green if score is 100 or above
     return colors.last;
+  }
+
+  List<DropdownMenuItem<int>> generateDropdownItems(List<String> roomNames) {
+    index = 0;
+    return roomNames.map((roomName) {
+      return DropdownMenuItem<int>(
+        value: index++,
+        child: Text(roomName),
+      );
+    }).toList();
   }
 }
